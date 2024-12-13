@@ -22,6 +22,7 @@ export type TileData = Buffer;
  * tiles and returns an encoded contour vector tiles.
  */
 export interface DemManager {
+  initializePMTiles(): unknown;
   loaded: Promise<any>;
   fetchTile(
     z: number,
