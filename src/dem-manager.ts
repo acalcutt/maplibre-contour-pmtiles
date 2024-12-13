@@ -235,14 +235,11 @@ export class LocalDemManager implements DemManager {
       subsampleBelow = 100,
     } = options;
 
-
-    console.log(levels)
     // no levels means less than min zoom with levels specified
     if (!levels || levels.length === 0) {
       return Promise.resolve({ arrayBuffer: new ArrayBuffer(0) });
     }
     const key = [z, x, y, encodeIndividualOptions(options)].join("/");
-    console.log(key)
     return this.contourCache.get(
       key,
       async (_, childAbortController) => {
@@ -265,7 +262,6 @@ export class LocalDemManager implements DemManager {
           }
         }
         const neighbors = await Promise.all(neighborPromises);
-        console.log(neighbors);
         let virtualTile = HeightTile.combineNeighbors(neighbors);
         if (!virtualTile || isAborted(childAbortController)) {
           return { arrayBuffer: new Uint8Array().buffer };
@@ -285,15 +281,12 @@ export class LocalDemManager implements DemManager {
           .scaleElevation(multiplier)
           .materialize(1);
 
-        console.log(virtualTile);
-
         const isolines = generateIsolines(
           levels[0],
           virtualTile,
           extent,
           buffer,
         );
-        console.log(isolines)
 
         mark?.();
         const result = encodeVectorTile({
