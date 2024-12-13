@@ -19,14 +19,15 @@ export default class WorkerDispatch {
   /** There is one worker shared between all managers in the main thread using the plugin, so need to store each of their configurations. */
   managers: { [id: number]: LocalDemManager } = {};
 
-  init = (message: InitMessage, _: AbortController): Promise<void> => {
+  init = (message: InitMessage, _: AbortController): Promise<void> => {    
     this.managers[message.managerId] = new LocalDemManager(
-      message.demUrlPattern,
+      message.fileUrl,
       message.cacheSize,
       message.encoding,
       message.maxzoom,
       message.timeoutMs,
     );
+    this.managers[message.managerId].initializePMTiles();
     return Promise.resolve();
   };
 
@@ -35,10 +36,8 @@ export default class WorkerDispatch {
     z: number,
     x: number,
     y: number,
-    abortController: AbortController,
-    timer?: Timer,
   ): Promise<FetchResponse> =>
-    this.managers[managerId]?.fetchTile(z, x, y, abortController, timer) ||
+    this.managers[managerId]?.fetchTile(z, x, y) ||
     noManager(managerId);
 
   fetchAndParseTile = (

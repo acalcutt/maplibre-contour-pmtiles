@@ -3,6 +3,8 @@ import decodeImage from "./decode-image";
 import { HeightTile } from "./height-tile";
 import generateIsolines from "./isolines";
 import { encodeIndividualOptions, isAborted, withTimeout } from "./utils";
+import { PMTiles, FetchSource } from 'pmtiles';
+
 import type {
   ContourTile,
   DemTile,
@@ -12,6 +14,8 @@ import type {
 } from "./types";
 import encodeVectorTile, { GeomType } from "./vtpbf";
 import { Timer } from "./performance";
+
+export type TileData = Buffer;
 
 /**
  * Holds cached tile state, and exposes `fetchContourTile` which fetches the necessary
@@ -23,8 +27,6 @@ export interface DemManager {
     z: number,
     x: number,
     y: number,
-    abortController: AbortController,
-    timer?: Timer,
   ): Promise<FetchResponse>;
   fetchAndParseTile(
     z: number,
@@ -50,10 +52,13 @@ export class LocalDemManager implements DemManager {
   tileCache: AsyncCache<string, FetchResponse>;
   parsedCache: AsyncCache<string, DemTile>;
   contourCache: AsyncCache<string, ContourTile>;
-  demUrlPattern: string;
   encoding: Encoding;
   maxzoom: number;
+  pmtiles: PMTiles | null;
+  fileUrl: string;
+  abortController: AbortController | null = null;
   timeoutMs: number;
+  
   loaded = Promise.resolve();
   decodeImage: (
     blob: Blob,
@@ -62,7 +67,7 @@ export class LocalDemManager implements DemManager {
   ) => Promise<DemTile> = decodeImage;
 
   constructor(
-    demUrlPattern: string,
+    fileUrl: string,
     cacheSize: number,
     encoding: Encoding,
     maxzoom: number,
@@ -72,50 +77,47 @@ export class LocalDemManager implements DemManager {
     this.parsedCache = new AsyncCache(cacheSize);
     this.contourCache = new AsyncCache(cacheSize);
     this.timeoutMs = timeoutMs;
-    this.demUrlPattern = demUrlPattern;
+    this.fileUrl = fileUrl;
     this.encoding = encoding;
     this.maxzoom = maxzoom;
+    this.pmtiles = null;
   }
 
-  fetchTile(
-    z: number,
-    x: number,
-    y: number,
-    parentAbortController: AbortController,
-    timer?: Timer,
-  ): Promise<FetchResponse> {
-    const url = this.demUrlPattern
-      .replace("{z}", z.toString())
-      .replace("{x}", x.toString())
-      .replace("{y}", y.toString());
-    timer?.useTile(url);
-    return this.tileCache.get(
-      url,
-      (_, childAbortController) => {
-        const options: RequestInit = {
-          signal: childAbortController.signal,
-        };
-        timer?.fetchTile(url);
-        const mark = timer?.marker("fetch");
-        return withTimeout(
-          this.timeoutMs,
-          fetch(url, options).then(async (response) => {
-            mark?.();
-            if (!response.ok) {
-              throw new Error(`Bad response: ${response.status} for ${url}`);
-            }
-            return {
-              data: await response.blob(),
-              expires: response.headers.get("expires") || undefined,
-              cacheControl: response.headers.get("cache-control") || undefined,
-            };
-          }),
-          childAbortController,
-        );
-      },
-      parentAbortController,
-    );
+  public async initializePMTiles() {
+    const source = new FetchSource(this.fileUrl);
+    this.pmtiles = new PMTiles(source);
   }
+
+  public abort() {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+  }
+
+  async fetchTile(z: number, x: number, y: number): Promise<FetchResponse> {
+    if (!this.pmtiles) {
+      throw new Error("pmtiles is not initialized.");
+    }
+
+    try {
+        const zxyTile = await this.pmtiles.getZxy(z, x, y);
+        if (zxyTile && zxyTile.data) {
+            // Convert Buffer to Blob
+            const blob = new Blob([zxyTile.data]);
+            return {
+                data: blob,
+                expires: undefined,
+                cacheControl: undefined,
+            };
+        } else {
+            throw new Error(`Tile data not found for ${z}/${x}/${y}`);
+        }
+    } catch (error) {
+        throw new Error(`Failed to fetch DEM tile from PMTiles: ${error}`);
+    }
+}
+
   fetchAndParseTile = (
     z: number,
     x: number,
@@ -125,23 +127,13 @@ export class LocalDemManager implements DemManager {
   ): Promise<DemTile> => {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
-    const url = this.demUrlPattern
-      .replace("{z}", z.toString())
-      .replace("{x}", x.toString())
-      .replace("{y}", y.toString());
-
+    const url = z.toString() + "/" + x.toString() + "/" + y.toString()
     timer?.useTile(url);
 
     return this.parsedCache.get(
       url,
       async (_, childAbortController) => {
-        const response = await self.fetchTile(
-          z,
-          x,
-          y,
-          childAbortController,
-          timer,
-        );
+        const response = await self.fetchTile(z,x,y);
         if (isAborted(childAbortController)) throw new Error("canceled");
         const promise = self.decodeImage(
           response.data,
