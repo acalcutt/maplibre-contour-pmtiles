@@ -190,6 +190,8 @@ export class DemSource {
         z,
         x,
         y,
+        abortController,
+        timer,
       );
       timing = timer.finish(request.url);
       const arrayBuffer: ArrayBuffer = await data.data.arrayBuffer();

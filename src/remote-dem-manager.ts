@@ -42,7 +42,7 @@ export default class RemoteDemManager implements DemManager {
   loaded: Promise<any>;
 
   constructor(
-    demUrlPattern: string,
+    fileUrl: string,
     cacheSize: number,
     encoding: Encoding,
     maxzoom: number,
@@ -58,7 +58,7 @@ export default class RemoteDemManager implements DemManager {
       undefined,
       {
         cacheSize,
-        demUrlPattern,
+        fileUrl,
         encoding,
         maxzoom,
         managerId,

@@ -27,6 +27,8 @@ export interface DemManager {
     z: number,
     x: number,
     y: number,
+    abortController: AbortController,
+    timer?: Timer,
   ): Promise<FetchResponse>;
   fetchAndParseTile(
     z: number,
@@ -54,7 +56,7 @@ export class LocalDemManager implements DemManager {
   contourCache: AsyncCache<string, ContourTile>;
   encoding: Encoding;
   maxzoom: number;
-  pmtiles: PMTiles | null;
+  pmtiles: PMTiles | null = null;
   fileUrl: string;
   abortController: AbortController | null = null;
   timeoutMs: number;
@@ -95,28 +97,61 @@ export class LocalDemManager implements DemManager {
     }
   }
 
-  async fetchTile(z: number, x: number, y: number): Promise<FetchResponse> {
+  async fetchTile(
+    z: number,
+    x: number,
+    y: number,
+    parentAbortController: AbortController,
+    timer?: Timer
+  ): Promise<FetchResponse> {
     if (!this.pmtiles) {
       throw new Error("pmtiles is not initialized.");
     }
+    const url = `${z}/${x}/${y}`;
 
-    try {
-        const zxyTile = await this.pmtiles.getZxy(z, x, y);
-        if (zxyTile && zxyTile.data) {
-            // Convert Buffer to Blob
-            const blob = new Blob([zxyTile.data]);
-            return {
-                data: blob,
-                expires: undefined,
-                cacheControl: undefined,
-            };
-        } else {
-            throw new Error(`Tile data not found for ${z}/${x}/${y}`);
+    timer?.useTile(url); // Use the timer here 
+    
+    return new Promise(async(resolve,reject) =>{
+
+        if (parentAbortController.signal.aborted) {
+            reject(new Error("Request aborted by parent."));
+            return;
+          }
+
+        const childAbortController = new AbortController();
+        parentAbortController.signal.addEventListener('abort', () => {
+            childAbortController.abort();
+        });
+        
+        try {
+            timer?.fetchTile(url)
+            const mark = timer?.marker("fetch")
+
+            if (this.pmtiles) {
+              const zxyTile = await this.pmtiles.getZxy(z, x, y)
+              mark?.();
+  
+              if (zxyTile && zxyTile.data) {
+                  const blob = new Blob([zxyTile.data]);
+                  resolve({
+                      data: blob,
+                      expires: undefined,
+                      cacheControl: undefined,
+                  });
+              } else {
+                  reject(new Error(`Tile data not found for z:${z} x:${x} y:${y}`));
+              }
+            } else {
+              reject(new Error("pmtiles is not initialized."));
+            }
+          
+        } catch (error) {
+            reject(new Error(`Failed to fetch DEM tile from PMTiles: ${error}`));
+        } finally {
+            childAbortController.abort()
         }
-    } catch (error) {
-        throw new Error(`Failed to fetch DEM tile from PMTiles: ${error}`);
-    }
-}
+    });
+  }
 
   fetchAndParseTile = (
     z: number,
@@ -127,13 +162,19 @@ export class LocalDemManager implements DemManager {
   ): Promise<DemTile> => {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
-    const url = z.toString() + "/" + x.toString() + "/" + y.toString()
+    const url = `${z}/${x}/${y}`;
     timer?.useTile(url);
 
     return this.parsedCache.get(
       url,
       async (_, childAbortController) => {
-        const response = await self.fetchTile(z,x,y);
+        const response = await self.fetchTile(
+          z,
+          x,
+          y,
+          childAbortController,
+          timer,
+        );
         if (isAborted(childAbortController)) throw new Error("canceled");
         const promise = self.decodeImage(
           response.data,

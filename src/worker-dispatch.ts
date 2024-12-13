@@ -36,8 +36,10 @@ export default class WorkerDispatch {
     z: number,
     x: number,
     y: number,
+    abortController: AbortController,
+    timer?: Timer,
   ): Promise<FetchResponse> =>
-    this.managers[managerId]?.fetchTile(z, x, y) ||
+    this.managers[managerId]?.fetchTile(z, x, y, abortController, timer) ||
     noManager(managerId);
 
   fetchAndParseTile = (
