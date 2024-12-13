@@ -12,7 +12,7 @@ import type {
   IndividualContourTileOptions,
 } from "./types";
 import { prepareDemTile } from "./utils";
-import { PMTiles, FetchSource } from 'pmtiles';
+import { PMTiles, FetchSource } from "pmtiles";
 
 let _actor: Actor<WorkerDispatch> | undefined;
 let id = 0;
@@ -40,7 +40,7 @@ function defaultActor(): Actor<WorkerDispatch> {
 export default class RemoteDemManager implements DemManager {
   managerId: number;
   actor: Actor<WorkerDispatch>;
-  loaded: Promise<any>;  
+  loaded: Promise<any>;
   pmtiles: PMTiles | null = null;
   fileUrl: string;
 

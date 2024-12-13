@@ -2,8 +2,8 @@ import AsyncCache from "./cache";
 import decodeImage from "./decode-image";
 import { HeightTile } from "./height-tile";
 import generateIsolines from "./isolines";
-import { encodeIndividualOptions, isAborted, withTimeout } from "./utils";
-import { PMTiles, FetchSource } from 'pmtiles';
+import { encodeIndividualOptions, isAborted } from "./utils";
+import { PMTiles, FetchSource } from "pmtiles";
 
 import type {
   ContourTile,
@@ -58,7 +58,7 @@ export class LocalDemManager implements DemManager {
   pmtiles: PMTiles | null = null;
   fileUrl: string;
   timeoutMs: number;
-  
+
   loaded = Promise.resolve();
   decodeImage: (
     blob: Blob,
@@ -93,54 +93,52 @@ export class LocalDemManager implements DemManager {
     x: number,
     y: number,
     parentAbortController: AbortController,
-    timer?: Timer
+    timer?: Timer,
   ): Promise<FetchResponse> {
     if (!this.pmtiles) {
       throw new Error("pmtiles is not initialized.");
     }
     const url = `${z}/${x}/${y}`;
 
-    timer?.useTile(url); // Use the timer here 
-    
-    return new Promise(async(resolve,reject) =>{
+    timer?.useTile(url); // Use the timer here
 
-        if (parentAbortController.signal.aborted) {
-            reject(new Error("Request aborted by parent."));
-            return;
+    return new Promise(async (resolve, reject) => {
+      if (parentAbortController.signal.aborted) {
+        reject(new Error("Request aborted by parent."));
+        return;
+      }
+
+      const childAbortController = new AbortController();
+      parentAbortController.signal.addEventListener("abort", () => {
+        childAbortController.abort();
+      });
+
+      try {
+        timer?.fetchTile(url);
+        const mark = timer?.marker("fetch");
+
+        if (this.pmtiles) {
+          const zxyTile = await this.pmtiles.getZxy(z, x, y);
+          mark?.();
+
+          if (zxyTile && zxyTile.data) {
+            const blob = new Blob([zxyTile.data]);
+            resolve({
+              data: blob,
+              expires: undefined,
+              cacheControl: undefined,
+            });
+          } else {
+            reject(new Error(`Tile data not found for z:${z} x:${x} y:${y}`));
           }
-
-        const childAbortController = new AbortController();
-        parentAbortController.signal.addEventListener('abort', () => {
-            childAbortController.abort();
-        });
-        
-        try {
-            timer?.fetchTile(url)
-            const mark = timer?.marker("fetch")
-
-            if (this.pmtiles) {
-              const zxyTile = await this.pmtiles.getZxy(z, x, y)
-              mark?.();
-  
-              if (zxyTile && zxyTile.data) {
-                  const blob = new Blob([zxyTile.data]);
-                  resolve({
-                      data: blob,
-                      expires: undefined,
-                      cacheControl: undefined,
-                  });
-              } else {
-                  reject(new Error(`Tile data not found for z:${z} x:${x} y:${y}`));
-              }
-            } else {
-              reject(new Error("pmtiles is not initialized."));
-            }
-          
-        } catch (error) {
-            reject(new Error(`Failed to fetch DEM tile from PMTiles: ${error}`));
-        } finally {
-            childAbortController.abort()
+        } else {
+          reject(new Error("pmtiles is not initialized."));
         }
+      } catch (error) {
+        reject(new Error(`Failed to fetch DEM tile from PMTiles: ${error}`));
+      } finally {
+        childAbortController.abort();
+      }
     });
   }
 
