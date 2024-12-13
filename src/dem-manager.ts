@@ -15,8 +15,6 @@ import type {
 import encodeVectorTile, { GeomType } from "./vtpbf";
 import { Timer } from "./performance";
 
-export type TileData = Buffer;
-
 /**
  * Holds cached tile state, and exposes `fetchContourTile` which fetches the necessary
  * tiles and returns an encoded contour vector tiles.
@@ -59,7 +57,6 @@ export class LocalDemManager implements DemManager {
   maxzoom: number;
   pmtiles: PMTiles | null = null;
   fileUrl: string;
-  abortController: AbortController | null = null;
   timeoutMs: number;
   
   loaded = Promise.resolve();
@@ -89,13 +86,6 @@ export class LocalDemManager implements DemManager {
   public async initializePMTiles() {
     const source = new FetchSource(this.fileUrl);
     this.pmtiles = new PMTiles(source);
-  }
-
-  public abort() {
-    if (this.abortController) {
-      this.abortController.abort();
-      this.abortController = null;
-    }
   }
 
   async fetchTile(
