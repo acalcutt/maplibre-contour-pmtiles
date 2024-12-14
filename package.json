@@ -43,6 +43,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "3.2.0",
     "@eslint/js": "9.16.0",
+    "@mapbox/tilebelt": "^2.0.2",
     "@mapbox/vector-tile": "2.0.3",
     "@rollup/plugin-commonjs": "28.0.1",
     "@rollup/plugin-node-resolve": "15.3.0",
@@ -63,7 +64,6 @@
     "jest-environment-jsdom": "29.7.0",
     "lodash": "4.17.21",
     "npm-run-all": "4.1.5",
-    "@mapbox/tilebelt": "^2.0.2",
     "pbf": "4.0.1",
     "pmtiles": "3.0.7",
     "pngjs": "7.0.0",
@@ -73,5 +73,8 @@
     "typescript": "5.7.2",
     "typescript-eslint": "8.18.0",
     "whatwg-fetch": "3.6.20"
+  },
+  "dependencies": {
+    "geojson": "^0.5.0"
   }
 }

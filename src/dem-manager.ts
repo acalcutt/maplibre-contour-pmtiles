@@ -3,7 +3,7 @@ import decodeImage from "./decode-image";
 import { HeightTile } from "./height-tile";
 import generateIsolines from "./isolines";
 import { encodeIndividualOptions, isAborted } from "./utils";
-import { PMTiles, FetchSource } from "pmtiles";
+import { openPMtiles, getPMtilesTile } from "./pmtiles-adapter";
 
 import type {
   ContourTile,
@@ -14,6 +14,7 @@ import type {
 } from "./types";
 import encodeVectorTile, { GeomType } from "./vtpbf";
 import { Timer } from "./performance";
+import type { PMTiles } from "pmtiles";
 
 /**
  * Holds cached tile state, and exposes `fetchContourTile` which fetches the necessary
@@ -84,8 +85,7 @@ export class LocalDemManager implements DemManager {
   }
 
   public async initializePMTiles() {
-    const source = new FetchSource(this.fileUrl);
-    this.pmtiles = new PMTiles(source);
+    this.pmtiles = openPMtiles(this.fileUrl);
   }
 
   async fetchTile(
@@ -118,7 +118,7 @@ export class LocalDemManager implements DemManager {
         const mark = timer?.marker("fetch");
 
         if (this.pmtiles) {
-          const zxyTile = await this.pmtiles.getZxy(z, x, y);
+          const zxyTile = await getPMtilesTile(this.pmtiles, z, x, y);
           mark?.();
 
           if (zxyTile && zxyTile.data) {
@@ -135,7 +135,7 @@ export class LocalDemManager implements DemManager {
           reject(new Error("pmtiles is not initialized."));
         }
       } catch (error) {
-        reject(new Error(`Failed to fetch DEM tile from PMTiles: ${error}`));
+        reject(new Error(`Failed to fetch DEM tile for z:${z} x:${x} y:${y} from PMTiles: ${error}`));
       } finally {
         childAbortController.abort();
       }

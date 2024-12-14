@@ -3,7 +3,7 @@ import { PMTiles, FetchSource, type Source } from 'pmtiles';
 
 const httpTester = /^https?:\/\//i;
 
-class PMTilesFileSource implements Source {
+export class PMTilesFileSource implements Source {
   private fd: number;
 
   constructor(fd: number) {
@@ -58,8 +58,25 @@ export function openPMtiles(FilePath: string): PMTiles {
     }
     return pmtiles;
   } finally {
-    if (fd !== undefined) {
-      fs.closeSync(fd);
-    }
+    
   }
 }
+export async function getPMtilesTile(
+    pmtiles: PMTiles,
+    z: number,
+    x: number,
+    y: number
+  ): Promise<{ data: Buffer | undefined }> {
+    try {
+      const zxyTile = await pmtiles.getZxy(z, x, y);
+  
+      if (zxyTile && zxyTile.data) {
+        return { data: Buffer.from(zxyTile.data) };
+      } else {
+        return { data: undefined };
+      }
+    } catch (error) {
+      console.error("Error fetching tile:", error);
+      return { data: undefined };
+    }
+  }
