@@ -111,8 +111,8 @@ async function processQueue(queue:Promise<any>[], batchSize = 25) {
 
 async function main() {
     const tileUrlTemplate = "//";
-    //const bbox: BBox = [-122.5, 37.7, -122.3, 37.8]; // San Francisco example bounding box
-    const bbox: BBox = [-180,-90,180,90]; // San Francisco example bounding box
+    const bbox: BBox = [-122.5, 37.7, -122.3, 37.8]; // San Francisco example bounding box
+    //const bbox: BBox = [-180,-90,180,90]; // San Francisco example bounding box
     const minZoom = 0;
     const maxZoom = 8;
 
