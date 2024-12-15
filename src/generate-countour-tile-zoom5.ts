@@ -8,6 +8,55 @@ interface Tile {
     z: number;
 }
 
+const manager = new LocalDemManager(
+    "/work/JAXA_AW3D30_2024_terrainrgb_z0-Z12_png.pmtiles",
+    1000,
+    "terrarium",
+    12,
+    10000
+);
+manager.initializePMTiles();
+
+const zoomLevel = 5;
+const maxzoomLevel = 12;
+const tilesAtZoom5 = generateTilesAtZoom(zoomLevel, 512);
+console.log(`Number of tiles at zoom ${zoomLevel}: ${tilesAtZoom5.length}`);
+
+main();
+
+async function main() {
+	const length = tilesAtZoom5.length
+	let count = 0
+    for (const tile of tilesAtZoom5) { // Changed to for...of loop
+        count++
+        console.log(`Starting Parent Tile: ${JSON.stringify(tile)} (${count} of ${length})`);
+
+        const children = getAllChildren([tile.x, tile.y, tile.z], maxzoomLevel);
+
+        children.sort((a, b) => {
+            //Sort by Z first
+            if (a[2] !== b[2]) return a[2] - b[2];
+            //If Z is equal, sort by X
+            if (a[0] !== b[0]) return a[0] - b[0];
+            //If Z and X are equal, sort by Y
+            return a[1] - b[1];
+        });
+        //console.log(`Children Tiles: ${JSON.stringify(children)}`);
+
+        await processQueue(children, 500); 
+        console.log('All files processed from Parent Tile: ${JSON.stringify(tile)} (${count} of ${length})!');
+    }
+}
+
+async function processQueue(queue, batchSize = 25) {
+    for (let i = 0; i < queue.length; i += batchSize) {
+        const batch = queue.slice(i, i + batchSize);
+        //console.log(`Batch: ${JSON.stringify(batch)}`);
+        await Promise.all(batch.map(processTile));
+        console.log(`Processed batch ${i / batchSize + 1} of ${Math.ceil(queue.length / batchSize)}`);
+    }
+}
+
 function generateTilesAtZoom(zoom: number, tileSize: 256 | 512 = 256): Tile[] {
     if (zoom < 0) {
         throw new Error("Zoom level must be non-negative.");
@@ -91,53 +140,3 @@ async function processTile(v: [number, number, number]) {
         //throw error; // Re-throw so Promise.all fails and shows errors.
     }
 }
-
-async function processQueue(queue, batchSize = 25) {
-    for (let i = 0; i < queue.length; i += batchSize) {
-        const batch = queue.slice(i, i + batchSize);
-        //console.log(`Batch: ${JSON.stringify(batch)}`);
-        await Promise.all(batch.map(processTile));
-        console.log(`Processed batch ${i / batchSize + 1} of ${Math.ceil(queue.length / batchSize)}`);
-    }
-}
-
-const manager = new LocalDemManager(
-    "/opt/pmtiles_converted/jaxa_terrainrgb0-12.pmtiles",
-    500,
-    "terrarium",
-    12,
-    10000
-);
-manager.initializePMTiles();
-
-const zoomLevel = 5;
-const maxzoomLevel = 12;
-const tilesAtZoom5 = generateTilesAtZoom(zoomLevel, 512);
-console.log(`Number of tiles at zoom ${zoomLevel}: ${tilesAtZoom5.length}`);
-
-
-async function main() {
-	const length = tilesAtZoom5.length
-	let count = 0
-    for (const tile of tilesAtZoom5) { // Changed to for...of loop
-        count++
-        console.log(`Starting Parent Tile: ${JSON.stringify(tile)} (${count} of ${length})`);
-
-        const children = getAllChildren([tile.x, tile.y, tile.z], maxzoomLevel);
-
-        children.sort((a, b) => {
-            //Sort by Z first
-            if (a[2] !== b[2]) return a[2] - b[2];
-            //If Z is equal, sort by X
-            if (a[0] !== b[0]) return a[0] - b[0];
-            //If Z and X are equal, sort by Y
-            return a[1] - b[1];
-        });
-        //console.log(`Children Tiles: ${JSON.stringify(children)}`);
-
-        await processQueue(children, 150); 
-        console.log('All files processed from Parent Tile: ${JSON.stringify(tile)} (${count} of ${length})!');
-    }
-}
-
-main();
