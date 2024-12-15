@@ -19,7 +19,7 @@ manager.initializePMTiles();
 
 const zoomLevel = 5;
 const maxzoomLevel = 12;
-const tilesAtZoom5 = generateTilesAtZoom(zoomLevel, 512);
+const tilesAtZoom5 = generateTilesAtZoom(zoomLevel, 256);
 console.log(`Number of tiles at zoom ${zoomLevel}: ${tilesAtZoom5.length}`);
 
 main();
