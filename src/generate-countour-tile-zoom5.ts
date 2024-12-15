@@ -95,7 +95,7 @@ async function processTile(v: [number, number, number]) {
 async function processQueue(queue, batchSize = 25) {
     for (let i = 0; i < queue.length; i += batchSize) {
         const batch = queue.slice(i, i + batchSize);
-        console.log(`Batch: ${JSON.stringify(batch)}`);
+        //console.log(`Batch: ${JSON.stringify(batch)}`);
         await Promise.all(batch.map(processTile));
         console.log(`Processed batch ${i / batchSize + 1} of ${Math.ceil(queue.length / batchSize)}`);
     }
@@ -103,9 +103,9 @@ async function processQueue(queue, batchSize = 25) {
 
 const manager = new LocalDemManager(
     "/opt/pmtiles_converted/jaxa_terrainrgb0-12.pmtiles",
-    100,
+    500,
     "terrarium",
-    8,
+    12,
     10000
 );
 manager.initializePMTiles();
@@ -121,7 +121,7 @@ async function main() {
 	let count = 0
     for (const tile of tilesAtZoom5) { // Changed to for...of loop
         count++
-        console.log(`Parent Tile: ${JSON.stringify(tile)} (${count} of ${length}`);
+        console.log(`Starting Parent Tile: ${JSON.stringify(tile)} (${count} of ${length})`);
 
         const children = getAllChildren([tile.x, tile.y, tile.z], maxzoomLevel);
 
@@ -135,8 +135,8 @@ async function main() {
         });
         //console.log(`Children Tiles: ${JSON.stringify(children)}`);
 
-        await processQueue(children); 
-        console.log('All files written!');
+        await processQueue(children, 150); 
+        console.log('All files processed from Parent Tile: ${JSON.stringify(tile)} (${count} of ${length})!');
     }
 }
 
