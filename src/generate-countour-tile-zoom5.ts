@@ -9,16 +9,16 @@ interface Tile {
 }
 
 const manager = new LocalDemManager(
-    "/work/JAXA_AW3D30_2024_terrainrgb_z0-Z12_png.pmtiles",
+    "C:\\Users\\andrew.EIRI\\Desktop\\JAXA_AW3D30_2024_terrainrgb_z0-Z12_png.pmtiles",
     1000,
-    "terrarium",
+    "mapbox",
     12,
     10000
 );
 manager.initializePMTiles();
 
 const zoomLevel = 5;
-const maxzoomLevel = 12;
+const maxzoomLevel = 8;
 const tilesAtZoom5 = generateTilesAtZoom(zoomLevel, 256);
 console.log(`Number of tiles at zoom ${zoomLevel}: ${tilesAtZoom5.length}`);
 
