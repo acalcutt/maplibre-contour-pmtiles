@@ -127,9 +127,19 @@ async function processTile(v: Tile): Promise<void> {
   const y: number = v[1];
   const dirPath: string = `./output/${z}/${x}`;
   const filePath: string = `${dirPath}/${y}.pbf`;
+
+  let levels = increment
+  if (z <= 7) {
+    levels = 500
+  } else if (z <= 9) {
+    levels = 100
+  } else if (z <= 11) {
+    levels = 50
+  }
+
   console.log(filePath);
   return manager
-    .fetchContourTile(z, x, y, { levels: [increment] }, new AbortController())
+    .fetchContourTile(z, x, y, { levels: [levels] }, new AbortController())
     .then((tile) => {
       return new Promise<void>((resolve, reject) => {
         mkdir(dirPath, { recursive: true }, (err) => {
