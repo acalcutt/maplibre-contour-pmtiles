@@ -128,7 +128,7 @@ async function processTile(v: Tile): Promise<void> {
   const dirPath: string = `./output/${z}/${x}`;
   const filePath: string = `${dirPath}/${y}.pbf`;
 
-  let levels = increment
+  let levels = increment;
   if (z <= 7) {
     levels = 500
   } else if (z <= 9) {
