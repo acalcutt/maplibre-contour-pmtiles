@@ -4,10 +4,16 @@ process_tile() {
     local zoom_level="$1"
     local x_coord="$2"
     local y_coord="$3"
+    local increment=10
+    local mazZoom=11
+    local sMazZoom=8
+    local sEncoding="terrarium"
+    local sFile="/mnt/c/Users/Andrew/Desktop/Junk/tile_data/pmtiles/gebco_terrarium0-8.pmtiles"
+
 
     echo "process_tile: Processing tile - Zoom: $zoom_level, X: $x_coord, Y: $y_coord"
 
-    npx tsx ./src/generate-countour-tile-batch.ts --x $x_coord --y $y_coord --z $zoom_level --maxZoom 11
+    npx tsx ./src/generate-countour-tile-batch.ts --x $x_coord --y $y_coord --z $zoom_level --maxZoom $mazZoom --sFile $mazZoom --sFile $sEncoding --sMaxZoom $sEncoding --increment $increment
     
     echo "process_tile: Finished processing $zoom_level-$x_coord-$y_coord"
 }
