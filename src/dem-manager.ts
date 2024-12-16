@@ -135,7 +135,11 @@ export class LocalDemManager implements DemManager {
           reject(new Error("pmtiles is not initialized."));
         }
       } catch (error) {
-        reject(new Error(`Failed to fetch DEM tile for z:${z} x:${x} y:${y} from PMTiles: ${error}`));
+        reject(
+          new Error(
+            `Failed to fetch DEM tile for z:${z} x:${x} y:${y} from PMTiles: ${error}`,
+          ),
+        );
       } finally {
         childAbortController.abort();
       }

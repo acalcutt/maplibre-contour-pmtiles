@@ -1,5 +1,5 @@
-import fs from 'node:fs';
-import { PMTiles, FetchSource, type Source } from 'pmtiles';
+import fs from "node:fs";
+import { PMTiles, FetchSource, type Source } from "pmtiles";
 
 const httpTester = /^https?:\/\//i;
 
@@ -14,7 +14,10 @@ export class PMTilesFileSource implements Source {
     return String(this.fd); // Convert the fd to a string
   }
 
-  async getBytes(offset: number, length: number): Promise<{ data: ArrayBuffer }> {
+  async getBytes(
+    offset: number,
+    length: number,
+  ): Promise<{ data: ArrayBuffer }> {
     const buffer = Buffer.alloc(length);
     await readFileBytes(this.fd, buffer, offset);
     const ab = buffer.buffer.slice(
@@ -35,9 +38,13 @@ async function readFileBytes(
       if (err) {
         return reject(err);
       }
-      if(bytesRead !== buffer.length){
-           return reject(new Error(`Failed to read the requested amount of bytes, got ${bytesRead} expected ${buffer.length}`))
-         }
+      if (bytesRead !== buffer.length) {
+        return reject(
+          new Error(
+            `Failed to read the requested amount of bytes, got ${bytesRead} expected ${buffer.length}`,
+          ),
+        );
+      }
       resolve();
     });
   });
@@ -52,31 +59,30 @@ export function openPMtiles(FilePath: string): PMTiles {
       const source = new FetchSource(FilePath);
       pmtiles = new PMTiles(source);
     } else {
-      fd = fs.openSync(FilePath, 'r');
+      fd = fs.openSync(FilePath, "r");
       const source = new PMTilesFileSource(fd);
       pmtiles = new PMTiles(source);
     }
     return pmtiles;
   } finally {
-    
   }
 }
 export async function getPMtilesTile(
-    pmtiles: PMTiles,
-    z: number,
-    x: number,
-    y: number
-  ): Promise<{ data: Buffer | undefined }> {
-    try {
-      const zxyTile = await pmtiles.getZxy(z, x, y);
-  
-      if (zxyTile && zxyTile.data) {
-        return { data: Buffer.from(zxyTile.data) };
-      } else {
-        return { data: undefined };
-      }
-    } catch (error) {
-      console.error("Error fetching tile:", error);
+  pmtiles: PMTiles,
+  z: number,
+  x: number,
+  y: number,
+): Promise<{ data: Buffer | undefined }> {
+  try {
+    const zxyTile = await pmtiles.getZxy(z, x, y);
+
+    if (zxyTile && zxyTile.data) {
+      return { data: Buffer.from(zxyTile.data) };
+    } else {
       return { data: undefined };
     }
+  } catch (error) {
+    console.error("Error fetching tile:", error);
+    return { data: undefined };
   }
+}
