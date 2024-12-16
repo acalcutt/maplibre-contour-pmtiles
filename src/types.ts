@@ -1,5 +1,8 @@
 /** Scheme used to map pixel rgb values elevations. */
+export type Tile = [number, number, number];
+
 export type Encoding = "terrarium" | "mapbox";
+
 export interface IsTransferrable {
   transferrables: Transferable[];
 }
@@ -10,6 +13,7 @@ export interface DemTile {
   /** elevation values in row-major order */
   data: Float32Array;
 }
+
 export interface TransferrableDemTile extends DemTile, IsTransferrable {}
 /** A rendered contour tile */
 export interface ContourTile {
