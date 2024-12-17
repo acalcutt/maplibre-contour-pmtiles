@@ -140,8 +140,7 @@ async function processTile(v: Tile): Promise<void> {
   const y: number = v[1];
   const dirPath: string = path.join(oDir, `${z}`, `${x}`);
   const filePath: string = path.join(dirPath, `${y}.pbf`);
-
-  console.log(filePath);
+  
   return manager
     .fetchContourTile(z, x, y, { levels: [increment] }, new AbortController())
     .then((tile) => {
@@ -160,7 +159,7 @@ async function processTile(v: Tile): Promise<void> {
 
 async function processQueue(
   queue: Tile[],
-  batchSize: number = 25,
+  batchSize: number = 100,
 ): Promise<void> {
   for (let i = 0; i < queue.length; i += batchSize) {
     const batch = queue.slice(i, i + batchSize);
@@ -176,7 +175,7 @@ async function processQueue(
 
 const manager: LocalDemManager = new LocalDemManager(
   sFile,
-  100,
+  200,
   sEncoding as Encoding,
   sMaxZoom,
   10000,
@@ -196,5 +195,5 @@ children.sort((a, b) => {
 });
 
 processQueue(children).then(() => {
-  console.log("All files written!");
+  console.log(`All files for tile ${z}/${x}/${y} have been written!`);
 });
