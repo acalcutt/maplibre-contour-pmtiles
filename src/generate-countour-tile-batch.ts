@@ -119,18 +119,19 @@ try {
   process.exit(1);
 }
 
-function getAllChildren(tile: Tile, maxZoom: number): Tile[] {
-  if (tile[2] >= maxZoom) return [tile];
-  let allChildren: Tile[] = [];
-  theChildren(tile);
-  return allChildren;
-
-  function theChildren(tile: Tile) {
-    const children: Tile[] = getChildren(tile);
-    allChildren = allChildren.concat(children);
-    if (children[0][2] === maxZoom) return;
-    children.forEach(theChildren);
-  }
+function getAllTiles(tile: Tile, maxZoom: number): Tile[] {
+  let allTiles: Tile[] = [tile]; // Initialize with the input tile
+  
+  function getTileList(tile: Tile) {
+      const children: Tile[] = getChildren(tile);
+      allTiles = allTiles.concat(children);
+      if (children.length === 0 || children[0][2] >= maxZoom) return;
+      children.forEach(getTileList);
+    }
+    
+    getTileList(tile);
+    
+    return allTiles;
 }
 
 async function processTile(v: Tile): Promise<void> {
@@ -183,7 +184,7 @@ const manager: LocalDemManager = new LocalDemManager(
 manager.initializePMTiles();
 
 // Use parsed command line args
-const children: Tile[] = getAllChildren([x, y, z], oMaxZoom);
+const children: Tile[] = getAllTiles([x, y, z], oMaxZoom);
 
 children.sort((a, b) => {
   //Sort by Z first
