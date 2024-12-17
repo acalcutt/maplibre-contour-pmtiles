@@ -2,7 +2,7 @@ import { writeFileSync, mkdir } from "fs";
 import { LocalDemManager } from "./dem-manager";
 import { getChildren } from "@mapbox/tilebelt";
 import type { Tile, Encoding } from "./types";
-import path from 'path';
+import path from "path";
 
 // Define an interface for parsed arguments
 interface ParsedArgs {
@@ -82,8 +82,8 @@ function parseArgs(): ParsedArgs {
     throw new Error("Invalid --oMaxZoom argument. Must be a number.");
   }
   if (!oDir) {
-      throw new Error("Invalid --oDir argument. Must be a string.");
-    }
+    throw new Error("Invalid --oDir argument. Must be a string.");
+  }
 
   return {
     x: x as number,
@@ -109,7 +109,8 @@ let x: number,
   oMaxZoom: number, // Renamed maxZoom to oMaxZoom
   oDir: string;
 try {
-  ({ x, y, z, sFile, sEncoding, sMaxZoom, increment, oMaxZoom, oDir } = parseArgs());
+  ({ x, y, z, sFile, sEncoding, sMaxZoom, increment, oMaxZoom, oDir } =
+    parseArgs());
 } catch (e: any) {
   console.error(e);
   console.error(
@@ -133,13 +134,13 @@ function getAllChildren(tile: Tile, maxZoom: number): Tile[] {
 }
 
 async function processTile(v: Tile): Promise<void> {
-    const z: number = v[2];
-    const x: number = v[0];
-    const y: number = v[1];
-    const dirPath: string = path.join(oDir,`${z}`, `${x}`)
-    const filePath: string = path.join(dirPath,`${y}.pbf`);
-  
-    console.log(filePath);
+  const z: number = v[2];
+  const x: number = v[0];
+  const y: number = v[1];
+  const dirPath: string = path.join(oDir, `${z}`, `${x}`);
+  const filePath: string = path.join(dirPath, `${y}.pbf`);
+
+  console.log(filePath);
   return manager
     .fetchContourTile(z, x, y, { levels: [increment] }, new AbortController())
     .then((tile) => {
