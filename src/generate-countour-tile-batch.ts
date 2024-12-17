@@ -163,11 +163,12 @@ async function processQueue(
 ): Promise<void> {
   for (let i = 0; i < queue.length; i += batchSize) {
     const batch = queue.slice(i, i + batchSize);
+    console.log(
+      `Processing batch ${i / batchSize + 1} of ${Math.ceil(queue.length / batchSize,)} of tile ${z}/${x}/${y}`,
+    );
     await Promise.all(batch.map(processTile));
     console.log(
-      `Processed batch ${i / batchSize + 1} of ${Math.ceil(
-        queue.length / batchSize,
-      )}`,
+      `Processed batch ${i / batchSize + 1} of ${Math.ceil(queue.length / batchSize,)} of tile ${z}/${x}/${y}`,
     );
   }
 }
