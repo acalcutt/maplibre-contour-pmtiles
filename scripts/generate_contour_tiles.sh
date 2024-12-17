@@ -5,7 +5,7 @@ increment_default=10
 sMaxZoom_default=8
 sEncoding_default="mapbox"
 oMaxZoom_default=11
-oMinZoom_default=4
+oMinZoom_default=5
 
 # Function to parse command line arguments
 parse_arguments() {
@@ -65,7 +65,7 @@ usage() {
   echo "  --increment <value> Increment value (default: $increment_default)" >&2
   echo "  --sMaxZoom <value> Source Max Zoom (default: $sMaxZoom_default)" >&2
   echo "  --sEncoding <encoding> Source Encoding (default: $sEncoding_default) (must be 'mapbox' or 'terrarium')" >&2
-  echo "  --sFile <path>  Source File Path (REQUIRED)" >&2
+  echo "  --sFile <path>  TerrainRGB or Terrarium PMTiles File Path or URL (REQUIRED)" >&2
   echo "  --oDir <path>  Output Directory (REQUIRED)" >&2
   echo "  --oMaxZoom <value> Output Max Zoom (default: $oMaxZoom_default)" >&2
   echo "  --oMinZoom <value> Output Min Zoom (default: $oMinZoom_default)" >&2
