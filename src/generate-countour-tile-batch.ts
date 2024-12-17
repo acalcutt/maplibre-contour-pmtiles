@@ -159,7 +159,7 @@ async function processTile(v: Tile): Promise<void> {
 
 async function processQueue(
   queue: Tile[],
-  batchSize: number = 100,
+  batchSize: number = 25,
 ): Promise<void> {
   for (let i = 0; i < queue.length; i += batchSize) {
     const batch = queue.slice(i, i + batchSize);
