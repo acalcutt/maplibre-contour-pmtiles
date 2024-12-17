@@ -4,7 +4,7 @@
 increment_default=10
 sMaxZoom_default=8
 sEncoding_default="mapbox"
-oMaxZoom_default=11
+oMaxZoom_default=8
 oMinZoom_default=5
 
 # Function to parse command line arguments
