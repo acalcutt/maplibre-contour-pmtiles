@@ -2,17 +2,19 @@ import { writeFileSync, mkdir } from "fs";
 import { LocalDemManager } from "./dem-manager";
 import { getChildren } from "@mapbox/tilebelt";
 import type { Tile, Encoding } from "./types";
+import path from 'path';
 
 // Define an interface for parsed arguments
 interface ParsedArgs {
   x: number;
   y: number;
   z: number;
-  maxZoom: number;
   sFile: string;
   sEncoding: string;
   sMaxZoom: number;
   increment: number;
+  oMaxZoom: number;
+  oDir: string;
 }
 
 // Get command-line arguments
@@ -23,11 +25,12 @@ function parseArgs(): ParsedArgs {
   let x: number | undefined;
   let y: number | undefined;
   let z: number | undefined;
-  let maxZoom: number | undefined;
   let sFile: string | undefined;
   let sEncoding: string | undefined;
   let sMaxZoom: number | undefined;
   let increment: number | undefined;
+  let oMaxZoom: number | undefined;
+  let oDir: string | undefined;
 
   for (let i = 0; i < args.length; i += 2) {
     const argName = args[i];
@@ -38,8 +41,6 @@ function parseArgs(): ParsedArgs {
       y = parseInt(argValue);
     } else if (argName === "--z") {
       z = parseInt(argValue);
-    } else if (argName === "--maxZoom") {
-      maxZoom = parseInt(argValue);
     } else if (argName === "--sFile") {
       sFile = argValue;
     } else if (argName === "--sEncoding") {
@@ -48,6 +49,10 @@ function parseArgs(): ParsedArgs {
       sMaxZoom = parseInt(argValue);
     } else if (argName === "--increment") {
       increment = parseInt(argValue);
+    } else if (argName === "--oMaxZoom") {
+      oMaxZoom = parseInt(argValue);
+    } else if (argName === "--oDir") {
+      oDir = argValue;
     }
   }
 
@@ -61,9 +66,6 @@ function parseArgs(): ParsedArgs {
   if (isNaN(z as number)) {
     throw new Error("Invalid --z argument. Must be a number.");
   }
-  if (isNaN(maxZoom as number)) {
-    throw new Error("Invalid --maxZoom argument. Must be a number.");
-  }
   if (!sFile) {
     throw new Error("Invalid --sFile argument. Must be a string.");
   }
@@ -76,33 +78,42 @@ function parseArgs(): ParsedArgs {
   if (isNaN(increment as number)) {
     throw new Error("Invalid --increment argument. Must be a number.");
   }
+  if (isNaN(oMaxZoom as number)) {
+    throw new Error("Invalid --oMaxZoom argument. Must be a number.");
+  }
+  if (!oDir) {
+      throw new Error("Invalid --oDir argument. Must be a string.");
+    }
 
   return {
     x: x as number,
     y: y as number,
     z: z as number,
-    maxZoom: maxZoom as number,
     sFile: sFile as string,
     sEncoding: sEncoding as string,
     sMaxZoom: sMaxZoom as number,
     increment: increment as number,
+    oMaxZoom: oMaxZoom as number,
+    oDir: oDir as string,
   };
 }
+
 // Parse command line args and set defaults
 let x: number,
   y: number,
   z: number,
-  maxZoom: number,
   sFile: string,
   sEncoding: string,
   sMaxZoom: number,
-  increment: number;
+  increment: number,
+  oMaxZoom: number, // Renamed maxZoom to oMaxZoom
+  oDir: string;
 try {
-  ({ x, y, z, maxZoom, sFile, sEncoding, sMaxZoom, increment } = parseArgs());
+  ({ x, y, z, sFile, sEncoding, sMaxZoom, increment, oMaxZoom, oDir } = parseArgs());
 } catch (e: any) {
   console.error(e);
   console.error(
-    "Usage: npx tsx ./src/generate-countour-tile-batch.ts --x <x> --y <y> --z <z> --maxZoom <maxZoom> --sFile <sFile> --sEncoding <sEncoding> --sMaxZoom <sMaxZoom> --increment <increment>",
+    "Usage: npx tsx ./src/generate-countour-tile-batch.ts --x <x> --y <y> --z <z> --sFile <sFile> --sEncoding <sEncoding> --sMaxZoom <sMaxZoom> --increment <increment> --oMaxZoom <oMaxZoom> --oDir <oDir>",
   );
   process.exit(1);
 }
@@ -122,12 +133,13 @@ function getAllChildren(tile: Tile, maxZoom: number): Tile[] {
 }
 
 async function processTile(v: Tile): Promise<void> {
-  const z: number = v[2];
-  const x: number = v[0];
-  const y: number = v[1];
-  const dirPath: string = `./output/${z}/${x}`;
-  const filePath: string = `${dirPath}/${y}.pbf`;
-  console.log(filePath);
+    const z: number = v[2];
+    const x: number = v[0];
+    const y: number = v[1];
+    const dirPath: string = path.join(oDir,`${z}`, `${x}`)
+    const filePath: string = path.join(dirPath,`${y}.pbf`);
+  
+    console.log(filePath);
   return manager
     .fetchContourTile(z, x, y, { levels: [increment] }, new AbortController())
     .then((tile) => {
@@ -169,7 +181,7 @@ const manager: LocalDemManager = new LocalDemManager(
 manager.initializePMTiles();
 
 // Use parsed command line args
-const children: Tile[] = getAllChildren([x, y, z], maxZoom);
+const children: Tile[] = getAllChildren([x, y, z], oMaxZoom);
 
 children.sort((a, b) => {
   //Sort by Z first

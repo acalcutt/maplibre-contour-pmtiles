@@ -5,14 +5,15 @@ process_tile() {
     local x_coord="$2"
     local y_coord="$3"
     local increment=10
-    local maxZoom=11
-    local sMazZoom=8
+    local sMaxZoom=8
     local sEncoding="terrarium"
     local sFile="/mnt/c/Users/Andrew/Desktop/Junk/tile_data/pmtiles/gebco_terrarium0-8.pmtiles"
+	local oDir="/work/"
+    local oMaxZoom=11
 
     echo "process_tile: Processing tile - Zoom: $zoom_level, X: $x_coord, Y: $y_coord"
 	
-    npx tsx ./src/generate-countour-tile-batch.ts --x $x_coord --y $y_coord --z $zoom_level --maxZoom $maxZoom --sFile $sFile --sEncoding $sEncoding --sMaxZoom $sMaxZoom --increment $increment
+	npx tsx ../src/generate-countour-tile-batch.ts --x $x_coord --y $y_coord --z $zoom_level --sFile $sFile --sEncoding $sEncoding --sMaxZoom $sMaxZoom --increment $increment --oMaxZoom $oMaxZoom --oDir $oDir
 	
     echo "process_tile: Finished processing $zoom_level-$x_coord-$y_coord"
 }
@@ -63,18 +64,7 @@ generate_tile_coordinates_xargs "$zoom_level_param"
 tile_coords_str=$(generate_tile_coordinates_xargs "$zoom_level_param")
 
 if [[ $? -eq 0 ]]; then
-    # To process the tiles with xargs, we can do this:
-    #echo "$tile_coords_str" | xargs -n 3 echo "Processing tile:"
 	echo "$tile_coords_str" | xargs -P 8 -n 3 bash -c 'process_tile "$@"' bash
-
-    # Or to capture the coordinates in an array
-    #read -r -a tile_coords_array <<< "$tile_coords_str"
-
-    # Iterate and use the captured "array"
-   # echo "Captured tile coords:"
-   # for ((i=0; i < ${#tile_coords_array[@]}; i+=3)); do
-   #   echo "Zoom: ${tile_coords_array[$i]}, X: ${tile_coords_array[$i+1]}, Y: ${tile_coords_array[$i+2]}"
-   # done
 else
   echo "Error generating tiles" >&2
   exit 1
