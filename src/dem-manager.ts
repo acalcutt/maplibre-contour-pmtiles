@@ -3,7 +3,13 @@ import decodeImage from "./decode-image";
 import { HeightTile } from "./height-tile";
 import generateIsolines from "./isolines";
 import { encodeIndividualOptions, isAborted } from "./utils";
-import { openPMtiles, getPMtilesTile } from "./pmtiles-adapter";
+
+const isWeb = process.env.BUILD_TARGET === "web"
+const { openPMtiles, getPMtilesTile } = await import(
+  isWeb
+      ? "./pmtiles-adapter-web"
+      : "./pmtiles-adapter"
+);
 
 import type {
   ContourTile,

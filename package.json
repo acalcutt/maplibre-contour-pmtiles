@@ -14,7 +14,9 @@
   },
   "scripts": {
     "bench": "npm run build && node benchmark.js",
-    "build": "rm -rf dist && rollup -c && npm run generate-types && tsc --project tsconfig.dist.json",
+    "build": "npm run build:node && npm run build:web",
+    "build:node": "rm -rf dist && rollup -c && npm run generate-types && tsc --project tsconfig.dist.json",
+    "build:web": "rm -rf dist && NODE_ENV=production rollup -c --configProduction && npm run generate-types && tsc --project tsconfig.dist.json",
     "test-build-v3": "cd test-project-maplibre-3 && rm -rf node_modules && rm -rf package-lock.json && npm i && npm test",
     "test-build": "cd test-project && rm -rf node_modules && rm -rf package-lock.json && npm i && npm test",
     "generate-types": "tsc --emitDeclarationOnly --declaration --outDir dist && rm -rf dist/*{.t,-j}est.d.ts",
@@ -47,6 +49,7 @@
     "@mapbox/vector-tile": "2.0.3",
     "@rollup/plugin-commonjs": "28.0.1",
     "@rollup/plugin-node-resolve": "15.3.0",
+    "@rollup/plugin-replace": "5.0.5",
     "@rollup/plugin-terser": "0.4.4",
     "@rollup/plugin-typescript": "12.1.1",
     "@types/benchmark": "2.1.5",

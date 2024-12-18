@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2016",
+    "target": "es2017",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "strict": true,
     "moduleResolution": "Bundler",
