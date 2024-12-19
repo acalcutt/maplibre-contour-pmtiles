@@ -32,8 +32,10 @@
     p.getHeader().then(h => {
         const map = new maplibregl.Map({
             container: 'map',
-            zoom: h.maxZoom - 2,
-            center: [h.centerLon, h.centerLat],
+            zoom: 12,
+            center: [11.39085, 47.27574],
+            pitch: 52,
+            hash: true,
             style: "https://acalcutt.github.io/maplibre-contour-pmtiles/styles/osm-bright-gl-terrain/style.json"
         });
     });
