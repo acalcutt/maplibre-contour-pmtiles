@@ -41,19 +41,19 @@
             sources: {
                 hillshadeSource: {
                     type: 'raster-dem',
-					encoding: 'terrarium',
+					encoding: 'mapbox',
                     // share cached raster-dem tiles with the contour source
                     tiles: [demSource.sharedDemProtocolUrl],
-					attribution: 'GEBCO',
+					attribution: 'JAXA AW3D30',
                     tileSize: 512,
                     maxzoom: 12
                 },
                 terrainSource: {
                     type: 'raster-dem',
-					encoding: 'terrarium',
+					encoding: 'mapbox',
                     // share cached raster-dem tiles with the contour source
                     tiles: [demSource.sharedDemProtocolUrl],
-					attribution: 'GEBCO',
+					attribution: 'JAXA AW3D30',
                     tileSize: 512,
                     maxzoom: 12
                 },
