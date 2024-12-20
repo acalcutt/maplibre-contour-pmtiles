@@ -52,16 +52,6 @@
       hash: true,
       style: "https://acalcutt.github.io/maplibre-contour-pmtiles/styles/osm-bright-gl-style/style.json"
     });
-    map.addControl(new maplibregl.NavigationControl({
-      visualizePitch: true,
-      showZoom: true,
-      showCompass: true
-    }));
-    map.addControl(
-      new maplibregl.TerrainControl({
-        source: "terrainSource"
-      })
-    );
     map.addSource("contour-source", {
       type: "vector",
       tiles: [
@@ -132,6 +122,16 @@
         "text-halo-width": 1,
       },
     });
+    map.addControl(new maplibregl.NavigationControl({
+      visualizePitch: true,
+      showZoom: true,
+      showCompass: true
+    }));
+    map.addControl(
+      new maplibregl.TerrainControl({
+        source: "dem-terrain"
+      })
+    );
   });
   </script>
 </body>
