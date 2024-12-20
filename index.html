@@ -62,7 +62,7 @@
                     tiles: [
                         demSource.contourProtocolUrl({
                         // meters to feet
-                            multiplier: 3.28084,
+                            multiplier: 1,
                             overzoom: 1,
                             thresholds: {
                             // zoom: [minor, major]
@@ -122,11 +122,7 @@
                     layout: {
                         'symbol-placement': 'line',
                         'text-size': 10,
-                        'text-field': [
-                            'concat',
-                            ['number-format', ['get', 'ele'], {}],
-                            '\''
-                        ],
+                        'text-field': ['concat', ['number-format', ['get', 'ele'], {}], ' m'],
                         'text-font': ['Noto Sans Bold']
                     }
                 }
