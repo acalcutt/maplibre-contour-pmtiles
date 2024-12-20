@@ -1,119 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <title>PMTiles source and protocol</title>
-    <meta property="og:description" content="Uses the PMTiles plugin and protocol to present a map." />
-    <meta charset='utf-8'>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css' />
-    <script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
-    <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
-    <style>
-        body { margin: 0; padding: 0; }
-        html, body, #map { height: 100%; }
-    </style>
+  <title>PMTiles source and protocol</title>
+  <meta property="og:description" content="Uses the PMTiles plugin and protocol to present a map." />
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css' />
+  <script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
+  <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
+  <style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body,
+  #map {
+    height: 100%;
+  }
+  </style>
 </head>
+
 <body>
-<div id="map"></div>
-<script src="https://acalcutt.github.io/maplibre-contour-pmtiles/dist/maplibre-contour-pmtiles.min.js"></script>
-<script>
-	//Load Maplibre Countour PMTILES for countours, hillshade and terrain
-    const demSource = new mlcontour.DemSource({
-        url: 'https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/terrain-tiles.pmtiles',
-        encoding: 'mapbox',
-        maxzoom: 12,
-        // offload contour line computation to a web worker
-        worker: true
+  <div id="map"></div>
+  <script src="https://acalcutt.github.io/maplibre-contour-pmtiles/dist/maplibre-contour-pmtiles.min.js"></script>
+  <script>
+  //Load Maplibre Countour PMTILES for countours, hillshade and terrain
+  const demSource = new mlcontour.DemSource({
+    url: 'https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/terrain-tiles.pmtiles',
+    encoding: 'mapbox',
+    maxzoom: 12,
+    // offload contour line computation to a web worker
+    worker: true
+  });
+  demSource.setupMaplibre(maplibregl);
+  // Load pmtiles plugin (only needed for OMT source)
+  const protocol = new pmtiles.Protocol();
+  maplibregl.addProtocol('pmtiles', protocol.tile);
+  const PMTILES_URL = 'https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/tiles-omt.pmtiles';
+  const p = new pmtiles.PMTiles(PMTILES_URL);
+  protocol.add(p);
+  map.addControl(new maplibregl.NavigationControl({
+    visualizePitch: true,
+    showZoom: true,
+    showCompass: true
+  }));
+  map.addControl(new maplibregl.TerrainControl({
+    source: "terrainSource"
+  }));
+  // we first fetch the header so we can get the center lon, lat of the map.
+  p.getHeader().then(h => {
+    const map = new maplibregl.Map({
+      container: 'map',
+      zoom: 12,
+      center: [11.39085, 47.27574],
+      pitch: 52,
+      hash: true,
+      style: "https://acalcutt.github.io/maplibre-contour-pmtiles/styles/osm-bright-gl-style/style.json"
     });
-	demSource.setupMaplibre(maplibregl);
-
-    // Load pmtiles plugin (only needed for OMT source)
-    const protocol = new pmtiles.Protocol();
-    maplibregl.addProtocol('pmtiles', protocol.tile);
-    const PMTILES_URL = 'https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/tiles-omt.pmtiles';
-    const p = new pmtiles.PMTiles(PMTILES_URL);
-    protocol.add(p);
-
-    // we first fetch the header so we can get the center lon, lat of the map.
-    p.getHeader().then(h => {
-        const map = new maplibregl.Map({
-            container: 'map',
-            zoom: 12,
-            center: [11.39085, 47.27574],
-            pitch: 52,
-            hash: true,
-            style: "https://acalcutt.github.io/maplibre-contour-pmtiles/styles/osm-bright-gl-style/style.json"
-        });
-
-		map.addSource("contour-source", {
-		  type: "vector",
-		  tiles: [
-			demSource.contourProtocolUrl({
-			  // convert meters to feet, default=1 for meters
-			  multiplier: 3.28084,
-			  thresholds: {
-				// zoom: [minor, major]
-				11: [200, 1000],
-				12: [100, 500],
-				14: [50, 200],
-				15: [20, 100],
-			  },
-			  // optional, override vector tile parameters:
-			  contourLayer: "contours",
-			  elevationKey: "ele",
-			  levelKey: "level",
-			  extent: 4096,
-			  buffer: 1,
-			}),
-		  ],
-		  maxzoom: 15,
-		});
-
-		map.addSource("dem-hillshade", {
-		  type: "raster-dem",
-		  encoding: "mapbox",
-		  tiles: [demSource.sharedDemProtocolUrl],
-		  maxzoom: 12,
-		  tileSize: 512,
-		});
-
-		map.addSource("dem-terrain", {
-		  type: "raster-dem",
-		  encoding: "mapbox",
-		  tiles: [demSource.sharedDemProtocolUrl],
-		  maxzoom: 12,
-		  tileSize: 512,
-		});
-
-		map.addLayer({
-		  id: "contour-lines",
-		  type: "line",
-		  source: "contour-source",
-		  "source-layer": "contours",
-		  paint: {
-			"line-color": "rgba(0,0,0, 50%)",
-			// level = highest index in thresholds array the elevation is a multiple of
-			"line-width": ["match", ["get", "level"], 1, 1, 0.5],
-		  },
-		});
-		map.addLayer({
-		  id: "contour-labels",
-		  type: "symbol",
-		  source: "contour-source",
-		  "source-layer": "contours",
-		  filter: [">", ["get", "level"], 0],
-		  layout: {
-			"symbol-placement": "line",
-			"text-size": 10,
-			"text-field": ["concat", ["number-format", ["get", "ele"], {}], "'"],
-			"text-font": ["Noto Sans Bold"],
-		  },
-		  paint: {
-			"text-halo-color": "white",
-			"text-halo-width": 1,
-		  },
-		});
+    map.addControl(new maplibregl.NavigationControl({
+      visualizePitch: true,
+      showZoom: true,
+      showCompass: true
+    }));
+    map.addControl(
+      new maplibregl.TerrainControl({
+        source: "terrainSource"
+      })
+    );
+    map.addSource("contour-source", {
+      type: "vector",
+      tiles: [
+        demSource.contourProtocolUrl({
+          // convert meters to feet, default=1 for meters
+          multiplier: 3.28084,
+          thresholds: {
+            // zoom: [minor, major]
+            11: [200, 1000],
+            12: [100, 500],
+            14: [50, 200],
+            15: [20, 100],
+          },
+          // optional, override vector tile parameters:
+          contourLayer: "contours",
+          elevationKey: "ele",
+          levelKey: "level",
+          extent: 4096,
+          buffer: 1,
+        }),
+      ],
+      maxzoom: 15,
     });
-</script>
+    map.addSource("dem-hillshade", {
+      type: "raster-dem",
+      encoding: "mapbox",
+      tiles: [demSource.sharedDemProtocolUrl],
+      maxzoom: 12,
+      tileSize: 512,
+    });
+    map.addSource("dem-terrain", {
+      type: "raster-dem",
+      encoding: "mapbox",
+      tiles: [demSource.sharedDemProtocolUrl],
+      maxzoom: 12,
+      tileSize: 512,
+    });
+    map.addLayer({
+      id: 'hillshading',
+      source: 'dem-hillshade',
+      type: 'hillshade'
+    }, 'Residential');
+    map.addLayer({
+      id: "contour-lines",
+      type: "line",
+      source: "contour-source",
+      "source-layer": "contours",
+      paint: {
+        "line-color": "rgba(0,0,0, 50%)",
+        // level = highest index in thresholds array the elevation is a multiple of
+        "line-width": ["match", ["get", "level"], 1, 1, 0.5],
+      },
+    });
+    map.addLayer({
+      id: "contour-labels",
+      type: "symbol",
+      source: "contour-source",
+      "source-layer": "contours",
+      filter: [">", ["get", "level"], 0],
+      layout: {
+        "symbol-placement": "line",
+        "text-size": 10,
+        "text-field": ["concat", ["number-format", ["get", "ele"], {}], "'"],
+        "text-font": ["Noto Sans Bold"],
+      },
+      paint: {
+        "text-halo-color": "white",
+        "text-halo-width": 1,
+      },
+    });
+  });
+  </script>
 </body>
+
 </html>
