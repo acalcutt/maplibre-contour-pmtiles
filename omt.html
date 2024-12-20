@@ -58,7 +58,7 @@
             tiles: [
               demSource.contourProtocolUrl({
                 // convert meters to feet, default=1 for meters
-                multiplier: 3.28084,
+                multiplier: 1,
                 thresholds: {
                   // zoom: [minor, major]
                   4: [500, 2000],
@@ -76,7 +76,7 @@
                 buffer: 1,
               }),
             ],
-            maxzoom: 15,
+            maxzoom: 17,
           });
           map.addSource("dem-hillshade", {
             type: "raster-dem",
@@ -117,7 +117,7 @@
             layout: {
               "symbol-placement": "line",
               "text-size": 10,
-              "text-field": ["concat", ["number-format", ["get", "ele"], {}], "'"],
+              "text-field": ["concat", ["number-format", ["get", "ele"], {}], " m"],
               "text-font": ["Noto Sans Bold"],
             },
             paint: {
