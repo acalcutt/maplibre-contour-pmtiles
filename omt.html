@@ -42,14 +42,6 @@
   const PMTILES_URL = 'https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/tiles-omt.pmtiles';
   const p = new pmtiles.PMTiles(PMTILES_URL);
   protocol.add(p);
-  map.addControl(new maplibregl.NavigationControl({
-    visualizePitch: true,
-    showZoom: true,
-    showCompass: true
-  }));
-  map.addControl(new maplibregl.TerrainControl({
-    source: "terrainSource"
-  }));
   // we first fetch the header so we can get the center lon, lat of the map.
   p.getHeader().then(h => {
     const map = new maplibregl.Map({
