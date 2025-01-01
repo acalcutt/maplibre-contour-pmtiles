@@ -137,6 +137,10 @@
             showCompass: true
           }));
 
+          map.setTerrain({
+            source: "dem-terrain"
+          });
+
           map.addControl(new maplibregl.TerrainControl({
             source: "dem-terrain"
           }));
