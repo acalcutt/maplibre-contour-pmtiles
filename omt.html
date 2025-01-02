@@ -29,7 +29,7 @@
   <script>
   //Load Maplibre Countour PMTILES for countours, hillshade and terrain
   const demSource = new mlcontour.DemSource({
-    url: 'https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/terrain-tiles.pmtiles',
+    url: 'pmtiles://https://acalcutt.github.io/maplibre-contour-pmtiles/pmtiles/terrain-tiles.pmtiles',
     encoding: 'mapbox',
     maxzoom: 12,
     // offload contour line computation to a web worker
