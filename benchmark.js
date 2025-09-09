@@ -14,7 +14,7 @@
 
   log("Running benchmarks...");
 
-  /** @type {import('./src/maplibre-contour-pmtiles.d.ts')['default']} */
+  /** @type {import('./src/index.d.ts')['default']} */
   const { decodeParsedImage, LocalDemManager } = mlcontour;
 
   function toBuffer(arrayBuffer) {
