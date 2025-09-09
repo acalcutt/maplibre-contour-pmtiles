@@ -29,12 +29,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onthegomap/maplibre-contour.git"
+    "url": "git+https://github.com/acalcutt/maplibre-contour-pmtiles.git"
   },
   "type": "module",
-  "author": "Michael Barry",
+  "author": "Michael Barry/Andrew Calcutt",
   "license": "BSD-3-Clause",
-  "homepage": "https://github.com/onthegomap/maplibre-contour",
+  "homepage": "https://github.com/acalcutt/maplibre-contour-pmtiles.git",
   "files": [
     "build/",
     "dist/*",
